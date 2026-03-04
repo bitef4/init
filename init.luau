@@ -1,16 +1,18 @@
 -- Init Script
 -- W.I.P
 
+print("Loading!")
+
 local cg = game:GetService("CoreGui")
 local hs = game:GetService("HttpService")
 local is = game:GetService("InsertService")
 local ps = game:GetService("Players")
 
-local f_datas = Instance.new("Folder", cg)
-f_datas.Name = "f_datas"
-local Pointer = Instance.new("Folder", f_datas)
+local ExternalExecutor = Instance.new("Folder", cg)
+ExternalExecutor.Name = "ExternalExecutor"
+local Pointer = Instance.new("Folder", ExternalExecutor)
 Pointer.Name = "Pointer"
-local Bridge = Instance.new("Folder", f_datas)
+local Bridge = Instance.new("Folder", ExternalExecutor)
 Bridge.Name = "Bridge"
 
 local plr = ps.LocalPlayer
@@ -24,10 +26,10 @@ local Load = cm:FindFirstChild("CommonUtil")
 
 local BridgeUrl = "http://localhost:9611"
 local ProcessID = "%-PROCESS-ID-%"
-local Vernushwd = "f_datas-HWID-" .. plr.UserId
+local Vernushwd = "ExternalExecutor-HWID-" .. plr.UserId
 
 local resc = 3
-local function _f_data(dta, typ, set)
+local function nukedata(dta, typ, set)
 	local timeout = 5
 	local result, clock = nil, tick()
 
@@ -73,17 +75,10 @@ env.getgenv = function()
 	return env
 end
 
-env.getthreadidentity = function()
-	return 3
+env.identifyexecutor = function()
+	return "ExternalExecutor", "1.0.1"
 end
-env.getidentity = env.getthreadidentity
-env.getthreadcontext = env.getthreadidentity
-
-env.setthreadidentity = function(identity)
-	assert(type(identity) == "number", "invalid argument #1 to 'setthreadidentity' (number expected, got " .. type(identity) .. ")", 2)
-end
-env.setidentity = env.setthreadidentity
-env.setthreadcontext = env.setthreadidentity
+env.getexecutorname = env.identifyexecutor
 
 env.setfpscap = function(cap)
 	cap = tonumber(cap)
@@ -105,81 +100,10 @@ env.getfpscap = function()
 end
 env.getfps = env.getfpscap
 
-env.gethiddenproperty = function(instance, property)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'gethiddenproperty' (Instance expected, got " .. typeof(instance) .. ")", 2)
-	assert(type(property) == "string", "invalid argument #2 to 'gethiddenproperty' (string expected, got " .. type(property) .. ")", 2)
-	
-	local success, value = pcall(function()
-		return instance[property]
-	end)
-	if success then
-		local isHidden = false
-		local hiddenProps = {"NetworkOwnerV3", "DataCost", "BottomParamA", "BottomParamB", "TopParamA", "TopParamB"}
-		for _, prop in ipairs(hiddenProps) do
-			if property == prop then
-				isHidden = true
-				break
-			end
-		end
-		return value, isHidden
-	else
-		return nil,true
-	end
-end
-
-env.sethiddenproperty = function(instance, property, value)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'sethiddenproperty' (Instance expected, got " .. typeof(instance) .. ")", 2)
-	assert(type(property) == "string", "invalid argument #2 to 'sethiddenproperty' (string expected, got " .. type(property) .. ")", 2)
-	
-	local success = pcall(function()
-		instance[property] = value
-	end)
-	
-	local hiddenProps = {"NetworkOwnerV3", "DataCost", "BottomParamA", "BottomParamB", "TopParamA", "TopParamB"}
-	for _, prop in ipairs(hiddenProps) do
-		if property == prop then
-			return true
-		end
-	end
-	
-	return false
-end
-
-env.isscriptable = function(instance, property)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'isscriptable' (Instance expected, got " .. typeof(instance) .. ")", 2)
-	assert(type(property) == "string", "invalid argument #2 to 'isscriptable' (string expected, got " .. type(property) .. ")", 2)
-	
-	local exists = pcall(function()
-		return instance[property]
-	end)
-	
-	if not exists then
-		return nil
-	end
-	
-	local success = pcall(function()
-		local _ = instance[property]
-	end)
-	
-	return success
-end
-
-env.setscriptable = function(instance, property, scriptable)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'setscriptable' (Instance expected, got " .. typeof(instance) .. ")", 2)
-	assert(type(property) == "string", "invalid argument #2 to 'setscriptable' (string expected, got " .. type(property) .. ")", 2)
-	assert(type(scriptable) == "boolean", "invalid argument #3 to 'setscriptable' (boolean expected, got " .. type(scriptable) .. ")", 2)
-	return true
-end
-
-env.identifyexecutor = function()
-	return "f_datasV1.0.0"
-end
-env.getexecutorname = env.identifyexecutor
-
 env.compile = function(code : string, encoded : bool)
 	local code = typeof(code) == "string" and code or ""
 	local encoded = typeof(encoded) == "boolean" and encoded or false
-	local res = _f_data(code, "compile", {
+	local res = nukedata(code, "compile", {
 		["enc"] = tostring(encoded)
 	})
 	return res or ""
@@ -190,7 +114,7 @@ env.setscriptbytecode = function(script : Instance, bytecode : string)
 	obj.Name = hs:GenerateGUID(false)
 	obj.Value = script
 
-	_f_data(bytecode, "setscriptbytecode", {
+	nukedata(bytecode, "setscriptbytecode", {
 		["cn"] = obj.Name
 	})
 
@@ -286,8 +210,8 @@ env.request = function(options)
 	options.Body = options.Body or "{}"
 	options.Headers = options.Headers or {}
 	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for argument #1 to 'request.Header' (string expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "f_datasV1.0.0"
-	options.Headers["f_datas-Fingerprint"] = Vernushwd
+	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "ExternalExecutorV1.0.0"
+	options.Headers["ExternalExecutor-Fingerprint"] = Vernushwd
 	options.Headers["Cache-Control"] = "no-cache"
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
 	options.Headers["Roblox-Game-Id"] = tostring(game.JobId)
@@ -295,7 +219,7 @@ env.request = function(options)
 		["GameId"] = tostring(game.GameId),
 		["PlaceId"] = tostring(game.PlaceId)
 	})
-	local res = _f_data("", "request", {
+	local res = nukedata("", "request", {
 		['l'] = options.Url,
 		['m'] = options.Method,
 		['h'] = options.Headers,
@@ -318,7 +242,7 @@ env.request = function(options)
 	end
 	return {
 		Success = false,
-		StatusMessage = "Can't connect to f_datas web server!",
+		StatusMessage = "Can't connect to ExternalExecutor web server!",
 		StatusCode = 599;
 		HttpError = Enum.HttpError.ConnectFail
 	}
@@ -491,17 +415,15 @@ env.base64decode = function(encoded)
 	return buffer.tostring(raw_decode(buffer.fromstring(encoded)))
 end
 env.base64_decode = env.base64decode
-env.crypt = env.crypt or {}
-env.crypt.base64encode = env.base64encode
-env.crypt.base64decode = env.base64decode
-env.crypt.base64_encode = env.base64encode
-env.crypt.base64_decode = env.base64decode
 
 local base64 = {}
+
 base64.encode = env.base64encode
 base64.decode = env.base64decode
+
 env.base64 = base64
 
+-- Executor closures tracking table (must be defined before newcclosure)
 local executor_closures = {}
 setmetatable(executor_closures, {__mode = "k"})
 
@@ -531,6 +453,7 @@ env.newcclosure = function(func)
 			coroutine.yield(func(...))
 		end
 	end)
+	-- Mark as executor closure
 	executor_closures[cloned] = true
 	return cloned
 end
@@ -544,7 +467,7 @@ env.clonefunction = function(func)
 	end
 end
 
-local user_agent = "f_datas"
+local user_agent = "ExternalExecutor"
 function env.HttpGet(url, returnRaw)
 	assert(type(url) == "string", "invalid argument #1 to 'HttpGet' (string expected, got " .. type(url) .. ") ", 2)
 	local returnRaw = returnRaw or true
@@ -786,75 +709,31 @@ env.getnilinstances = function()
 	return NilInstances
 end
 
-env.getloadedmodules = function(exclude_core)
+env.getloadedmodules = function()
 	local LoadedModules = {}
 	for i, v in pairs(objects) do
 		if v.proxy:IsA("ModuleScript") then
-			local isLoaded = false
-			pcall(function()
-				local _ = v.proxy:GetFullName()
-				isLoaded = true
-			end)
-			
-			if isLoaded then
-				if exclude_core then
-					local full_name = v.proxy:GetFullName()
-					if not full_name:find("CorePackages") and not full_name:find("CoreGui") then
-						table.insert(LoadedModules, v.proxy)
-					end
-				else
-					table.insert(LoadedModules, v.proxy)
-				end
-			end
+			table.insert(LoadedModules, v.proxy)
 		end
 	end
 	return LoadedModules
 end
-env.get_loaded_modules = env.getloadedmodules
 
 env.getrunningscripts = function()
 	local RunningScripts = {}
 	for i, v in pairs(objects) do
-		if v.proxy:IsA("LocalScript") or v.proxy:IsA("Script") then
-			local parent = v.proxy.Parent
-			local isInActor = false
-			while parent do
-				if parent:IsA("Actor") then
-					isInActor = true
-					break
-				end
-				parent = parent.Parent
-			end
-			
-			if not isInActor and v.proxy.Enabled then
-				local hasActiveThread = true
-				
-				if v.proxy:IsA("LocalScript") then
-					table.insert(RunningScripts, v.proxy)
-				elseif v.proxy:IsA("Script") then
-					if v.proxy.RunContext == Enum.RunContext.Client or v.proxy.RunContext == Enum.RunContext.Legacy then
-						table.insert(RunningScripts, v.proxy)
-					end
-				end
-			end
+		if v.proxy:IsA("ModuleScript") then
+			table.insert(RunningScripts, v.proxy)
 		end
 	end
 	return RunningScripts
 end
-env.get_running_scripts = env.getrunningscripts
 
 env.getscripts = function()
 	local Scripts = {}
 	for i, v in pairs(objects) do
-		local fullName = v.proxy:GetFullName()
-		if not fullName:find("CoreGui") and not fullName:find("CorePackages") then
-			if v.proxy:IsA("LocalScript") or v.proxy:IsA("ModuleScript") then
-				table.insert(Scripts, v.proxy)
-			elseif v.proxy:IsA("Script") then
-				if v.proxy.RunContext == Enum.RunContext.Client or v.proxy.RunContext == Enum.RunContext.Legacy then
-					table.insert(Scripts, v.proxy)
-				end
-			end
+		if v.proxy:IsA("LocalScript") or v.proxy:IsA("ModuleScript") or v.proxy:IsA("Script") then
+			table.insert(Scripts, v.proxy)
 		end
 	end
 	return Scripts
@@ -878,6 +757,7 @@ env.gethui = function()
 end
 
 local crypt = {}
+
 crypt.base64encode = env.base64encode
 crypt.base64_encode = env.base64encode
 crypt.base64decode = env.base64decode
@@ -954,6 +834,7 @@ end
 
 env.crypt = crypt
 
+-- Filesystem Library
 env.writefile = function(filepath, content)
 	assert(type(filepath) == "string", "invalid argument #1 to 'writefile' (string expected, got " .. type(filepath) .. ")")
 	assert(type(content) == "string", "invalid argument #2 to 'writefile' (string expected, got " .. type(content) .. ")")
@@ -966,14 +847,14 @@ env.writefile = function(filepath, content)
 		end
 	end
 	
-	local result = _f_data(content, "writefile", { path = filepath })
+	local result = nukedata(content, "writefile", { path = filepath })
 	return result == "true"
 end
 env.write = env.writefile
 
 env.readfile = function(filepath)
 	assert(type(filepath) == "string", "invalid argument #1 to 'readfile' (string expected, got " .. type(filepath) .. ")")
-	local result = _f_data("", "readfile", { path = filepath })
+	local result = nukedata("", "readfile", { path = filepath })
 	if result:find("^%[ERROR%]") then
 		error(result, 2)
 	end
@@ -993,45 +874,45 @@ env.appendfile = function(filepath, content)
 		end
 	end
 	
-	local result = _f_data(content, "appendfile", { path = filepath })
+	local result = nukedata(content, "appendfile", { path = filepath })
 	return result == "true"
 end
 env.append = env.appendfile
 
 env.isfile = function(filepath)
 	assert(type(filepath) == "string", "invalid argument #1 to 'isfile' (string expected, got " .. type(filepath) .. ")")
-	local result = _f_data("", "isfile", { path = filepath })
+	local result = nukedata("", "isfile", { path = filepath })
 	return result == "true"
 end
 
 env.isfolder = function(filepath)
 	assert(type(filepath) == "string", "invalid argument #1 to 'isfolder' (string expected, got " .. type(filepath) .. ")")
-	local result = _f_data("", "isfolder", { path = filepath })
+	local result = nukedata("", "isfolder", { path = filepath })
 	return result == "true"
 end
 
 env.makefolder = function(folderpath)
 	assert(type(folderpath) == "string", "invalid argument #1 to 'makefolder' (string expected, got " .. type(folderpath) .. ")")
-	local result = _f_data("", "makefolder", { path = folderpath })
+	local result = nukedata("", "makefolder", { path = folderpath })
 	return result == "true"
 end
 
 env.listfiles = function(folderpath)
 	assert(type(folderpath) == "string", "invalid argument #1 to 'listfiles' (string expected, got " .. type(folderpath) .. ")")
-	local result = _f_data("", "listfiles", { path = folderpath })
+	local result = nukedata("", "listfiles", { path = folderpath })
 	local files = hs:JSONDecode(result)
 	return files or {}
 end
 
 env.delfile = function(filepath)
 	assert(type(filepath) == "string", "invalid argument #1 to 'delfile' (string expected, got " .. type(filepath) .. ")")
-	local result = _f_data("", "delfile", { path = filepath })
+	local result = nukedata("", "delfile", { path = filepath })
 	return result == "true"
 end
 
 env.delfolder = function(folderpath)
 	assert(type(folderpath) == "string", "invalid argument #1 to 'delfolder' (string expected, got " .. type(folderpath) .. ")")
-	local result = _f_data("", "delfolder", { path = folderpath })
+	local result = nukedata("", "delfolder", { path = folderpath })
 	return result == "true"
 end
 
@@ -1062,7 +943,7 @@ env.getscriptbytecode = function(script)
 	obj.Name = hs:GenerateGUID(false)
 	obj.Value = script
 	
-	local bytecode = _f_data("", "getscriptbytecode", {
+	local bytecode = nukedata("", "getscriptbytecode", {
 		["cn"] = obj.Name
 	})
 	
@@ -1075,6 +956,28 @@ env.getscriptbytecode = function(script)
 	return bytecode
 end
 env.dumpstring = env.getscriptbytecode
+env.getscripthash = function(script)
+	script = ToObject(script)
+	assert(typeof(script) == "Instance", "invalid argument #1 to 'getscripthash' (Instance expected, got " .. typeof(script) .. ")", 2)
+	assert(script:IsA("LuaSourceContainer"), "invalid argument #1 to 'getscripthash' (LuaSourceContainer expected, got " .. script.ClassName .. ")", 2)
+	
+	local obj = Instance.new("ObjectValue", Pointer)
+	obj.Name = hs:GenerateGUID(false)
+	obj.Value = script
+	
+	local hash = nukedata("", "getscripthash", {
+		["cn"] = obj.Name
+	})
+	
+	obj:Destroy()
+	
+	if hash == "" then
+		return nil
+	end
+	
+	return hash
+end
+
 
 env.http_request = env.request
 env.syn = env.syn or {}
@@ -1089,7 +992,7 @@ env.whatexecutor = env.identifyexecutor
 env.getcustomasset = function(filepath)
 	assert(type(filepath) == "string", "invalid argument #1 to 'getcustomasset' (string expected, got " .. type(filepath) .. ")", 2)
 	
-	local result = _f_data("", "getcustomasset", {
+	local result = nukedata("", "getcustomasset", {
 		path = filepath
 	})
 	
@@ -1108,7 +1011,7 @@ env.setclipboard = function(content)
 		return
 	end
 	
-	local result = _f_data(content, "setclipboard", {})
+	local result = nukedata(content, "setclipboard", {})
 	return result == "true"
 end
 env.toclipboard = env.setclipboard
@@ -1117,7 +1020,7 @@ env.setrbxclipboard = env.setclipboard
 env.lz4compress = function(data)
 	assert(type(data) == "string", "invalid argument #1 to 'lz4compress' (string expected, got " .. type(data) .. ")", 2)
 	
-	local result = _f_data(data, "lz4compress", {})
+	local result = nukedata(data, "lz4compress", {})
 	return result
 end
 
@@ -1125,7 +1028,7 @@ env.lz4decompress = function(data, size)
 	assert(type(data) == "string", "invalid argument #1 to 'lz4decompress' (string expected, got " .. type(data) .. ")", 2)
 	assert(type(size) == "number", "invalid argument #2 to 'lz4decompress' (number expected, got " .. type(size) .. ")", 2)
 	
-	local result = _f_data(data, "lz4decompress", {
+	local result = nukedata(data, "lz4decompress", {
 		originalSize = tostring(size)
 	})
 	return result
@@ -1136,183 +1039,32 @@ env.isreadonly = function(tbl)
 	return table.isfrozen(tbl)
 end
 
-local current_identity = 8
-env.getidentity = function()
-	return current_identity
-end
-
-env.getthreadidentity = env.getidentity
-env.getthreadcontext = env.getidentity
-
-env.setidentity = function(identity)
-	identity = tonumber(identity)
-	assert(type(identity) == "number", "invalid argument #1 to 'setidentity' (number expected, got " .. type(identity) .. ")", 2)
-	assert(identity >= 0 and identity <= 8, "invalid identity level (must be 0-8)", 2)
-	current_identity = identity
-	return true
-end
-
-env.setthreadidentity = env.setidentity
-env.setthreadcontext = env.setidentity
-
-env.checkcaller = function()
-	local info = debug.info(2, 's')
-	return info == script:GetFullName() or info:find("loadstring") ~= nil
-end
-
-env.getreg = function()
-	return debug.getregistry()
-end
-
-env.getrenv = function()
-	return getfenv(0)
-end
-
-env.getrawmetatable = function(obj)
-	if obj == nil then
-		error("invalid argument #1 to 'getrawmetatable' (value expected, got nil)", 2)
-	end
-	local mt = getmetatable(obj)
-	return mt
-end
-
-env.setrawmetatable = function(obj, mt)
-	if obj == nil then
-		error("invalid argument #1 to 'setrawmetatable' (value expected, got nil)", 2)
-	end
-	assert(type(mt) == "table", "invalid argument #2 to 'setrawmetatable' (table expected, got " .. type(mt) .. ")", 2)
-	return setmetatable(obj, mt)
-end
-
-env.setreadonly = function(tbl, state)
-	assert(type(tbl) == "table", "invalid argument #1 to 'setreadonly' (table expected, got " .. type(tbl) .. ")", 2)
-	assert(type(state) == "boolean", "invalid argument #2 to 'setreadonly' (boolean expected, got " .. type(state) .. ")", 2)
-	
-	if state then
-		table.freeze(tbl)
-	else
-	end
-end
-
-local hooked_functions = {}
-setmetatable(hooked_functions, {__mode = "k"})
-
-env.hookfunction = function(original, hook)
-	assert(type(original) == "function", "invalid argument #1 to 'hookfunction' (function expected, got " .. type(original) .. ")", 2)
-	assert(type(hook) == "function", "invalid argument #2 to 'hookfunction' (function expected, got " .. type(hook) .. ")", 2)
-	
-	if not hooked_functions[hook] then
-		hooked_functions[hook] = original
-	end
-	
-	for k, v in pairs(env) do
-		if v == original then
-			env[k] = hook
-		end
-	end
-	
-	return original
-end
-env.replaceclosure = env.hookfunction
-
-env.restorefunction = function(func)
-	assert(type(func) == "function", "invalid argument #1 to 'restorefunction' (function expected, got " .. type(func) .. ")", 2)
-	
-	local original = hooked_functions[func]
-	if not original then
-		error("restorefunction: function is not hooked", 2)
-	end
-	
-	for k, v in pairs(env) do
-		if v == func then
-			env[k] = original
-		end
-	end
-	
-	hooked_functions[func] = nil
-end
-
-env.getgc = function(include_tables)
-	if include_tables == nil then
-		include_tables = false
-	end
-	assert(type(include_tables) == "boolean", "invalid argument #1 to 'getgc' (boolean expected, got " .. type(include_tables) .. ")", 2)
-	
-	local results = {}
-	local seen = {}
-	
-	local function scan(tbl)
-		if type(tbl) ~= "table" then return end
-		if seen[tbl] then return end
-		seen[tbl] = true
-		
-		for k, v in pairs(tbl) do
-			local vtype = type(v)
-			
-			if vtype == "function" and not seen[v] then
-				seen[v] = true
-				table.insert(results, v)
-			elseif vtype == "table" then
-				if include_tables and not seen[v] then
-					seen[v] = true
-					table.insert(results, v)
-				end
-				scan(v)
-			elseif vtype == "userdata" and not seen[v] then
-				seen[v] = true
-				table.insert(results, v)
-			end
-		end
-	end
-	
-	scan(env)
-	
-	local success, registry = pcall(debug.getregistry)
-	if success and registry then
-		scan(registry)
-	end
-	
-	return results
-end
-
-
-env.filtergc = function(options)
-	options = options or {}
-	local results = {}
-	
-	local function scan(tbl, visited)
-		if visited[tbl] then return end
-		visited[tbl] = true
-		
-		for k, v in pairs(tbl) do
-			if options.type then
-				if type(v) == options.type then
-					table.insert(results, v)
-				end
-			else
-				if type(v) == "function" or type(v) == "table" then
-					table.insert(results, v)
+env.getscripts = function()
+	local Scripts = {}
+	for i, v in pairs(objects) do
+		local fullName = v.proxy:GetFullName()
+		if not fullName:find("CoreGui") and not fullName:find("CorePackages") then
+			if v.proxy:IsA("LocalScript") or v.proxy:IsA("ModuleScript") then
+				table.insert(Scripts, v.proxy)
+			elseif v.proxy:IsA("Script") then
+				if v.proxy.RunContext == Enum.RunContext.Client or v.proxy.RunContext == Enum.RunContext.Legacy then
+					table.insert(Scripts, v.proxy)
 				end
 			end
-			
-			if type(v) == "table" then
-				scan(v, visited)
-			end
 		end
 	end
-	
-	scan(getfenv(0), {})
-	return results
-end
-
-env.getsenv = function(script_obj)
-	return {script = script_obj}
+	return Scripts
 end
 
 env.isexecutorclosure = function(func)
 	if type(func) ~= "function" then
 		error("invalid argument #1 to 'isexecutorclosure' (function expected, got " .. type(func) .. ")", 2)
 	end
+	
+	if executor_closures[func] then
+		return true
+	end
+	
 	if env.iscclosure(func) then
 		if debug.info(func, 'n') ~= "" then
 			return false
@@ -1349,12 +1101,12 @@ env.isourclosure = env.isexecutorclosure
 
 -- listener
 
-_f_data("", "listen")
+nukedata("", "listen")
 task.spawn(function()
 	while true do
-		local res = _f_data("", "listen")
+		local res = nukedata("", "listen")
 		if typeof(res) == "table" then
-			f_datas:Destroy()
+			ExternalExecutor:Destroy()
 			break
 		end
 		if res and #res > 1 then
@@ -1374,4 +1126,7 @@ task.spawn(function()
 	end
 end)
 
+print("Injected!")
+
+return {HideTemp = function() end}
 return {HideTemp = function() end}
