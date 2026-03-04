@@ -423,7 +423,6 @@ base64.decode = env.base64decode
 
 env.base64 = base64
 
--- Executor closures tracking table (must be defined before newcclosure)
 local executor_closures = {}
 setmetatable(executor_closures, {__mode = "k"})
 
@@ -1128,5 +1127,4 @@ end)
 
 print("Injected!")
 
-return {HideTemp = function() end}
 return {HideTemp = function() end}
