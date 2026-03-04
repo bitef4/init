@@ -172,7 +172,7 @@ env.setscriptable = function(instance, property, scriptable)
 end
 
 env.identifyexecutor = function()
-	return "f_datasV1.0.0", "1.0.0"
+	return "f_datasV1.0.0"
 end
 env.getexecutorname = env.identifyexecutor
 
