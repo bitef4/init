@@ -478,12 +478,10 @@ end
 env.checkcaller = function()
 	local s = debug.info(2, "s")
 	if s == nil or s == "[C]" or s == "=[C]" then return true end
-	-- Check if the caller's environment is the executor env (i.e. loadstring'd code)
 	local callerFunc = debug.info(2, "f")
 	if callerFunc then
 		local ok, fenv = pcall(getfenv, callerFunc)
 		if ok and fenv then
-			-- If fenv is our executor env, or has no real script attached, it's ours
 			if fenv == env then return true end
 			local scriptVal = rawget(fenv, "script")
 			if scriptVal == nil then return true end
@@ -1115,9 +1113,6 @@ end
 env.checkclosure = env.isexecutorclosure
 env.isourclosure = env.isexecutorclosure
 
--- ─────────────────────────────────────────────────────────────
--- WebSocket class
--- ─────────────────────────────────────────────────────────────
 do
 	local WebSocket = {}
 	WebSocket.__index = WebSocket
